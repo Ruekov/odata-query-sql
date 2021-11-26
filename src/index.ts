@@ -1,15 +1,14 @@
-const _ = require("lodash");
 const queryBuilder = require("@iamthes/query-builder");
 const odataParser = require("odata-parser");
 
 export = query;
 
-function query(query, options = {}) {
-    var dialect = _.get(options, "dialect");
+function query(query, options = {resource : "", dialect: "", defaultLimit: 50}) {
+    var dialect = options.dialect;
     var sql = queryBuilder.create(dialect)();
-    var resource = _.get(options, "resource");
-    var defaultLimit = _.get(options, "defaultLimit", 50);
-    var hasCount = _.has(query, "$count");
+    var resource = options.resource;
+    var defaultLimit = options.defaultLimit;
+    var hasCount = query.$count;
     var expands = parse(query.$expand, "$expand");
     var data = {
         table: resource,
@@ -90,13 +89,13 @@ function parseSelect(value: any) {
 }
 
 function parseOffset(value: any) {
-    return _.clamp(+value, 0, 500);
+    return clamp(+value, 0, 500);
 }
 
 function parseLimit(value: any, d = 50) {
     value = +value;
-    if (_.isNaN(value)) value = d;
-    var result: number = _.clamp(value, 1, 500);
+    if (isNaN(value)) value = d;
+    var result: number = clamp(value, 1, 500);
     return result;
 }
 
@@ -138,3 +137,14 @@ function operatorToExpr(op) {
     }
     throw new Error(`operatorToExpr method failed, unknown operator ${op}.`);
 }
+
+function clamp(number, boundOne, boundTwo)  {
+    if (!boundTwo) {
+      return Math.max(number, boundOne) === boundOne ? number : boundOne;
+    } else if (Math.min(number, boundOne) === number) {
+      return boundOne;
+    } else if (Math.max(number, boundTwo) === number) {
+      return boundTwo;
+    }
+    return number;
+  };
